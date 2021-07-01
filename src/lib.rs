@@ -43,7 +43,8 @@
 //! println!("[Client] Content of cat.txt: {}", buf);
 //! ```
 
-#[macro_use] extern crate log;
+extern crate percent_encoding;
+// #[macro_use] extern crate log;
 
 mod microhttp;
 mod client;
@@ -51,8 +52,8 @@ mod client;
 pub use microhttp::MicroHTTP;
 pub use client::Client;
 
-#[cfg(not(target_os="windows"))]
-fn os_windows() -> bool { false }
+// #[cfg(not(target_os="windows"))]
+// fn os_windows() -> bool { false }
 
-#[cfg(target_os="windows")]
-fn os_windows() -> bool { true }
+// #[cfg(target_os="windows")]
+// fn os_windows() -> bool { true }
