@@ -20,7 +20,10 @@ pub type Headers = HashMap<String, String>;
 /// GET and POST are supported.
 #[derive(Debug)]
 pub enum Request {
-	GET(Option<QueryData>, Headers),
+	/// A GET request which has query data and headers
+	GET(QueryData, Headers),
+	/// A POST request which has headers and the data
+	/// from its body
 	POST(Headers, Option<FormData>)
 }
 
@@ -31,8 +34,11 @@ pub type QueryData = HashMap<String, String>;
 /// an arbitrary string, or a handle on the underlying TCP connection.
 #[derive(Debug)]
 pub enum FormData {
+	/// Data is key-value pairs
 	KeyVal(HashMap<String, String>),
+	/// Data is plain text
 	Text(String),
+	/// Data is a stream of bytes
 	Stream(BufReader<TcpStream>)
 }
 
@@ -53,16 +59,16 @@ fn read_request_type(reader: &mut BufReader<TcpStream>) -> io::Result<String> {
 	Ok(String::from_utf8_lossy(&buffer).to_string())
 }
 
-fn read_request_url(reader: &mut BufReader<TcpStream>) -> io::Result<(URL, Option<QueryData>)> {
+fn read_request_url(reader: &mut BufReader<TcpStream>) -> io::Result<(URL, QueryData)> {
 	let mut buffer = Vec::new();
 	reader.read_until(b' ', &mut buffer)?;
 	buffer.pop();
 	let url = String::from_utf8_lossy(&buffer).to_string();
 	let (url, query) = match url.split_once('?') {
 		Some((url_string, query_string)) => {
-			(url_string, Some(parse_url_encoded_key_value_pairs(query_string)))
+			(url_string, parse_url_encoded_key_value_pairs(query_string))
 		},
-		None => (url.as_str(), None)
+		None => (url.as_str(), QueryData::new())
 	};
 	Ok((URL::from(percent_decode(url.as_bytes()).decode_utf8_lossy().to_string()), query))
 }
