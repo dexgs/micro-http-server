@@ -20,8 +20,8 @@ pub type Headers = HashMap<String, String>;
 /// GET and POST are supported.
 #[derive(Debug)]
 pub enum Request {
-	GET(URL, Option<QueryData>, Headers),
-	POST(URL, Headers, Option<FormData>)
+	GET(Option<QueryData>, Headers),
+	POST(Headers, Option<FormData>)
 }
 
 /// The query data encoded in a request URL.
@@ -43,7 +43,7 @@ pub enum FormData {
 pub struct Client {
 	stream: TcpStream,
 	addr: SocketAddr,
-	request: Option<Request>
+	request: Option<(URL, Request)>
 }
 
 fn read_request_type(reader: &mut BufReader<TcpStream>) -> io::Result<String> {
@@ -118,13 +118,13 @@ impl Client {
 			"GET" => {
 				let (url, query) = read_request_url(&mut reader)?;
 				let headers = read_request_headers(&mut reader)?;
-				Some(Request::GET(url, query, headers))
+				Some((url, Request::GET(query, headers)))
 			},
 			"POST" => {
 				let (url, _) = read_request_url(&mut reader)?;
 				let headers = read_request_headers(&mut reader)?;
 				let data = read_form_data(reader, &headers)?;
-				Some(Request::POST(url, headers, data))
+				Some((url, Request::POST(headers, data)))
 			},
 			_ => None
 		};
@@ -145,7 +145,7 @@ impl Client {
 	///
 	/// **Note**: At the moment, only HTTP GET and POST are supported.
 	/// Any other requests will not be collected.
-	pub fn request(&self) -> &Option<Request> {
+	pub fn request(&self) -> &Option<(URL, Request)> {
 		&self.request
 	}
 
