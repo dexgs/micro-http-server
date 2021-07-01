@@ -50,7 +50,7 @@ mod microhttp;
 mod client;
 
 pub use microhttp::MicroHTTP;
-pub use client::Client;
+pub use client::{Client, Request, QueryData, FormData, URL, Headers};
 
 // #[cfg(not(target_os="windows"))]
 // fn os_windows() -> bool { false }
