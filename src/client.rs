@@ -86,8 +86,9 @@ fn parse_url_encoded_key_value_pairs(s: &str) -> HashMap<String, String> {
 
 fn read_request_headers(reader: &mut BufReader<TcpStream>) -> io::Result<Headers> {
 	let mut headers = Headers::new();
-	let mut buffer = String::new();
-	while buffer.as_str() != "\n\n" {
+	// Initialize with non-empty contents so the loop runs at least once
+	let mut buffer = String::from("_");
+	while buffer.trim() != "" {
 		buffer = String::new();
 		reader.read_line(&mut buffer)?;
 		if let Some((k, v)) = buffer.split_once(": ") {
