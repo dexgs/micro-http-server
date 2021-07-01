@@ -155,6 +155,16 @@ impl Client {
 		&self.request
 	}
 
+	/// Return a mutable reference to the request the client made
+	/// or None if the client didn't make any or made an invalid
+	/// one.
+	///
+	/// **Note**: At the moment, only HTTP GET and POST are supported.
+	/// Any other requests will not be collected.
+	pub fn request_mut(&mut self) -> &mut Option<(URL, Request)> {
+		&mut self.request
+	}
+
 	/// Send a HTTP 200 OK response to the client + the provided data.
 	/// The data may be an empty array, for example the following
 	/// implementation echos all requests except "/hello":
