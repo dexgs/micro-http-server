@@ -92,27 +92,36 @@ fn read_request_headers(reader: &mut BufReader<TcpStream>) -> io::Result<Headers
 		buffer = String::new();
 		reader.read_line(&mut buffer)?;
 		if let Some((k, v)) = buffer.split_once(": ") {
-			headers.insert(k.to_string(), v.to_string());
+			headers.insert(k.trim().to_string(), v.trim().to_string());
 		}
 	}
 	Ok(headers)
 }
 
-fn read_form_data(mut reader: BufReader<TcpStream>, headers: &Headers) -> io::Result<Option<FormData>> {
+fn read_form_content_to_string(mut reader: BufReader<TcpStream>, headers: &Headers) -> Option<String> {
+	if let Some(length) = headers.get("Content-Length") {
+		let length = length.parse().ok()?;
+		reader.get_mut().set_nonblocking(true).ok()?;
+		let mut buffer = vec![0; length];
+		reader.read_exact(&mut buffer).ok()?;
+		return Some(String::from_utf8(buffer).ok()?);
+	}
+	None
+}
+
+fn read_form_data(reader: BufReader<TcpStream>, headers: &Headers) -> io::Result<Option<FormData>> {
 	match headers.get("Content-Type").map(|s| s.as_str()) {
 		Some("text/plain") => {
-			let mut text = String::new();
-			reader.read_to_string(&mut text)?;
-			Ok(Some(FormData::Text(text)))
-		}
+			Ok(read_form_content_to_string(reader, headers).map(|text| FormData::Text(text)))
+		},
 		Some("application/x-www-form-urlencoded") => {
-			let mut data = String::new();
-			reader.read_to_string(&mut data)?;
-			Ok(Some(FormData::KeyVal(parse_url_encoded_key_value_pairs(&data))))
+			Ok(read_form_content_to_string(reader, headers).map(|data| {
+				FormData::KeyVal(parse_url_encoded_key_value_pairs(&data))
+			}))
 		},
 		Some("multipart/form-data") => {
 			Ok(Some(FormData::Stream(reader)))
-		}
+		},
 		_ => Ok(None)
 	}
 }
