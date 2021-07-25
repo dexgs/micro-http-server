@@ -92,14 +92,14 @@ fn read_request_headers(reader: &mut BufReader<TcpStream>) -> io::Result<Headers
 		buffer = String::new();
 		reader.read_line(&mut buffer)?;
 		if let Some((k, v)) = buffer.split_once(": ") {
-			headers.insert(k.trim().to_string(), v.trim().to_string());
+			headers.insert(k.trim().to_lowercase(), v.trim().to_lowercase());
 		}
 	}
 	Ok(headers)
 }
 
 fn read_form_content_to_string(mut reader: BufReader<TcpStream>, headers: &Headers) -> Option<String> {
-	if let Some(length) = headers.get("Content-Length") {
+	if let Some(length) = headers.get("content-length") {
 		let length = length.parse().ok()?;
 		reader.get_mut().set_nonblocking(true).ok()?;
 		let mut buffer = vec![0; length];
@@ -110,7 +110,7 @@ fn read_form_content_to_string(mut reader: BufReader<TcpStream>, headers: &Heade
 }
 
 fn read_form_data(reader: BufReader<TcpStream>, headers: &Headers) -> io::Result<Option<FormData>> {
-	match headers.get("Content-Type").map(|s| s.as_str()) {
+	match headers.get("content-type").map(|s| s.as_str()) {
 		Some("text/plain") => {
 			Ok(read_form_content_to_string(reader, headers).map(|text| FormData::Text(text)))
 		},
