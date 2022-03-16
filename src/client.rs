@@ -92,7 +92,7 @@ fn read_request_headers(reader: &mut BufReader<TcpStream>) -> io::Result<Headers
 		buffer = String::new();
 		reader.read_line(&mut buffer)?;
 		if let Some((k, v)) = buffer.split_once(": ") {
-			headers.insert(k.trim().to_lowercase(), v.trim().to_lowercase());
+			headers.insert(k.trim().to_lowercase(), v.trim().to_owned());
 		}
 	}
 	Ok(headers)
