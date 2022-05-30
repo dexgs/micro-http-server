@@ -43,7 +43,6 @@
 //! println!("[Client] Content of cat.txt: {}", buf);
 //! ```
 
-extern crate percent_encoding;
 // #[macro_use] extern crate log;
 
 mod microhttp;

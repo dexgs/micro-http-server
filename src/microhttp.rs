@@ -1,6 +1,6 @@
 use std::{io, net::{TcpListener, ToSocketAddrs}};
 
-use client::Client;
+use crate::client::Client;
 
 /// This is the main struct of the µHTTP server.
 pub struct MicroHTTP {

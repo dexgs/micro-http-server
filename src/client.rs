@@ -5,7 +5,7 @@ use std::{
 	path::PathBuf,
 	str
 };
-use percent_encoding::percent_decode;
+use urlencoding::decode;
 // use super::os_windows;
 
 /// The URL of a request, represented as a PathBuf after
@@ -70,15 +70,18 @@ fn read_request_url(reader: &mut BufReader<TcpStream>) -> io::Result<(URL, Query
 		},
 		None => (url.as_str(), QueryData::new())
 	};
-	Ok((URL::from(percent_decode(url.as_bytes()).decode_utf8_lossy().to_string()), query))
+	let url = decode(url)
+		.map_err(|_| io::Error::from(io::ErrorKind::Other))?
+		.to_string();
+	Ok((URL::from(url), query))
 }
 
 fn parse_url_encoded_key_value_pairs(s: &str) -> HashMap<String, String> {
 	s.trim().split('&').filter_map(
 		|pair| {
 			let (k, v) = pair.split_once('=')?;
-			let k = percent_decode(k.as_bytes()).decode_utf8_lossy().to_string();
-			let v = percent_decode(v.as_bytes()).decode_utf8_lossy().to_string();
+			let k = decode(k).ok()?.to_string();
+			let v = decode(v).ok()?.to_string();
 			Some((k, v))
 		})
 	.collect()
